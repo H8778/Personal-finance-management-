@@ -1,0 +1,191 @@
+import java.awt.*;
+import java.awt.event.*;
+
+public class PersonalFinanceManagement extends Frame implements ActionListener {
+    // Components for inputs and labels
+    Label lblIncome, lblBudget, lblCategory, lblAmount, lblWarning;
+    TextField txtIncome, txtBudget, txtAmount;
+    Choice categoryChoice;
+    Button btnAddIncome, btnAddExpense, btnCalculate, btnReset, btnExit;
+
+    // Text area for summary
+    TextArea txtSummary;
+
+    // Variables for tracking finances
+    double monthlyIncome = 0, monthlyBudget = 0, totalExpenses = 0, totalSavings = 0;
+    double foodExpenses = 0, rentExpenses = 0, utilitiesExpenses = 0, entertainmentExpenses = 0;
+
+    public PersonalFinanceManagement() {
+        setTitle("Monthly Finance Management System");
+        setSize(600, 500);
+        setLayout(new BorderLayout(10, 10));
+
+        // Top Panel for Inputs
+        Panel inputPanel = new Panel(new GridLayout(6, 2, 10, 10));
+
+        lblIncome = new Label("Enter Monthly Income:");
+        txtIncome = new TextField();
+        inputPanel.add(lblIncome);
+        inputPanel.add(txtIncome);
+
+        lblBudget = new Label("Set Monthly Budget:");
+        txtBudget = new TextField();
+        inputPanel.add(lblBudget);
+        inputPanel.add(txtBudget);
+
+        lblCategory = new Label("Select Expense Category:");
+        categoryChoice = new Choice();
+        categoryChoice.add("Food");
+        categoryChoice.add("Rent");
+        categoryChoice.add("Utilities");
+        categoryChoice.add("Entertainment");
+        inputPanel.add(lblCategory);
+        inputPanel.add(categoryChoice);
+
+        lblAmount = new Label("Enter Expense Amount:");
+        txtAmount = new TextField();
+        inputPanel.add(lblAmount);
+        inputPanel.add(txtAmount);
+
+        add(inputPanel, BorderLayout.NORTH);
+
+        // Middle Panel for Buttons
+        Panel buttonPanel = new Panel(new GridLayout(1, 5, 10, 10));
+
+        btnAddIncome = new Button("Set Income");
+        btnAddIncome.addActionListener(this);
+        buttonPanel.add(btnAddIncome);
+
+        btnAddExpense = new Button("Add Expense");
+        btnAddExpense.addActionListener(this);
+        buttonPanel.add(btnAddExpense);
+
+        btnCalculate = new Button("Calculate");
+        btnCalculate.addActionListener(this);
+        buttonPanel.add(btnCalculate);
+
+        btnReset = new Button("Reset");
+        btnReset.addActionListener(this);
+        buttonPanel.add(btnReset);
+
+        btnExit = new Button("Exit");
+        btnExit.addActionListener(this);
+        buttonPanel.add(btnExit);
+
+        add(buttonPanel, BorderLayout.CENTER);
+
+        // Bottom Panel for Summary and Warnings
+        Panel summaryPanel = new Panel(new BorderLayout(10, 10));
+
+        lblWarning = new Label("", Label.CENTER);
+        lblWarning.setForeground(Color.RED);
+        summaryPanel.add(lblWarning, BorderLayout.NORTH);
+
+        txtSummary = new TextArea("Summary: \nIncome: 0\nBudget: 0\nExpenses: 0\nSavings: 0\n", 5, 50);
+        txtSummary.setEditable(false);
+        summaryPanel.add(txtSummary, BorderLayout.CENTER);
+
+        add(summaryPanel, BorderLayout.SOUTH);
+
+        // Window Listener
+        addWindowListener(new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                System.exit(0);
+            }
+        });
+
+        setVisible(true);
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        try {
+            if (e.getSource() == btnAddIncome) {
+                // Set Monthly Income
+                monthlyIncome = Double.parseDouble(txtIncome.getText());
+                lblWarning.setText("");
+                updateSummary();
+
+            } else if (e.getSource() == btnAddExpense) {
+                // Add Expense
+                double amount = Double.parseDouble(txtAmount.getText());
+                String category = categoryChoice.getSelectedItem();
+
+                switch (category) {
+                    case "Food":
+                        foodExpenses += amount;
+                        break;
+                    case "Rent":
+                        rentExpenses += amount;
+                        break;
+                    case "Utilities":
+                        utilitiesExpenses += amount;
+                        break;
+                    case "Entertainment":
+                        entertainmentExpenses += amount;
+                        break;
+                }
+                totalExpenses += amount;
+                lblWarning.setText("");
+                updateSummary();
+
+            } else if (e.getSource() == btnCalculate) {
+                // Calculate Monthly Finances
+                if (monthlyIncome == 0) {
+                    lblWarning.setText("Set Monthly Income first!");
+                } else {
+                    totalSavings = monthlyIncome - totalExpenses;
+
+                    if (txtBudget.getText().isEmpty()) {
+                        monthlyBudget = 0; // Default to 0 if not set
+                    } else {
+                        monthlyBudget = Double.parseDouble(txtBudget.getText());
+                    }
+
+                    if (totalSavings < 0) {
+                        lblWarning.setText("Warning: Deficit! You're overspending.");
+                    } else {
+                        lblWarning.setText("");
+                    }
+
+                    updateSummary();
+                }
+
+            } else if (e.getSource() == btnReset) {
+                // Reset all data
+                monthlyIncome = 0;
+                monthlyBudget = 0;
+                totalExpenses = 0;
+                totalSavings = 0;
+                foodExpenses = 0;
+                rentExpenses = 0;
+                utilitiesExpenses = 0;
+                entertainmentExpenses = 0;
+
+                txtIncome.setText("");
+                txtBudget.setText("");
+                txtAmount.setText("");
+                txtSummary.setText("Summary: \nIncome: 0\nBudget: 0\nExpenses: 0\nSavings: 0\n");
+                lblWarning.setText("");
+
+            } else if (e.getSource() == btnExit) {
+                // Exit the application
+                System.exit(0);
+            }
+        } catch (NumberFormatException ex) {
+            lblWarning.setText("Error: Please enter valid numeric values!");
+        }
+    }
+
+    private void updateSummary() {
+        txtSummary.setText(String.format(
+                "Summary:\nIncome: %.2f\nBudget: %.2f\nExpenses: %.2f\nSavings: %.2f\nFood: %.2f\nRent: %.2f\nUtilities: %.2f\nEntertainment: %.2f\n",
+                monthlyIncome, monthlyBudget, totalExpenses, (monthlyIncome - totalExpenses),
+                foodExpenses, rentExpenses, utilitiesExpenses, entertainmentExpenses
+        ));
+    }
+
+    public static void main(String[] args) {
+        new PersonalFinanceManagement();
+    }
+}
